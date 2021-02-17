@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: controller-manager
+  # this seems really counter intuitive
+  # namespace is required to match the base resource for merging
+  # however namespace is overridden by kustomize
+  namespace: actions-runner-system
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+        - name: kube-rbac-proxy
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 200m
+              memory: 30Mi
+            requests:
+              cpu: 100m
+              memory: 20Mi
+        - name: manager
+          image: 106877218800.dkr.ecr.us-east-1.amazonaws.com/chartley/actions-runner-controller:v0.17.0
+          imagePullPolicy: Always
+          command:
+            - /manager
+          args:
+            - --metrics-addr=127.0.0.1:8080
+            - --enable-leader-election
+          resources:
+            limits:
+              cpu: 100m
+              memory: 500Mi
+            requests:
+              cpu: 100m
+              memory: 500Mi
+      volumes:
+        - name: controller-manager
+          secret:
+            secretName: controller-manager-private-key
+            # - name: GITHUB_APP_ID
+            #   valueFrom:
+            #     secretKeyRef:
+            #       key: github_app_id
+            #       name: controller-manager
+            #       optional: false
+            # - name: GITHUB_APP_INSTALLATION_ID
+            #   valueFrom:
+            #     secretKeyRef:
+            #       key: github_app_installation_id
+            #       name: controller-manager
+            #       optional: false
+---
+

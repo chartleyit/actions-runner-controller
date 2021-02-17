@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: chrishartley
+bases:
+  - ../../crd
+  - ../hack/certmanager
+patchesStrategicMerge:
+  - deployment.yaml
+  - webhooks.yaml
+resources:
+  - external-secret.yaml
